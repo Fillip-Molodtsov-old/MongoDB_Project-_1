@@ -23,10 +23,12 @@ app.post('/fishnik',(req,res)=>{
         console.log('Getting error with adding new document');
         if(e.name = "ValidationError"){
             for(field in e.errors){
-                res.send(e.errors[field].message);
+                res.status(400).send(e.errors[field].message);
             }
         }
     })
 })
 
 app.listen(3000);
+
+module.exports = {app};

@@ -1,57 +1,32 @@
-const mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-mongoose.connect('mongodb://localhost:27017/MongooseApp', { useNewUrlParser: true });
+const {mongoose} = require('./db/mongoose');
+const {User} = require('./models/user');
+const {Fishnik} = require('./models/fishnik');
 
-// let Fishnik = new mongoose.model('Fishnik', {
-//     name: {
-//         type: String,
-//         required: true,
-//         trim:true,
-//         minlength:1,
-//     },
-//     year: {
-//         type: Number,
-//     },
-//     orientation: {
-//         type: Boolean,
-//         required: [function(){
-//             return this.year>1;
-//         },'Come on, get your orientation']
-//     }
-// });
+const app = express();
 
-// let fresh1 = new Fishnik({
-//     name:'Phil',
-//     year:4,
-//     orientation:true,
-// });
-// fresh1.save().then((doc) => {
-//     console.log(doc);
-// }, (e) => {
-//     console.log('Error Inserting New Data');
-//     if (e.name == 'ValidationError') {
-//         for (field in e.errors) {
-//             console.log(field);
-//             console.log(e.errors[field].message); 
-//         }
-//     }
-// });
-let User = new mongoose.model('User',{
-    email:{
-        type:String,
-        required:true,
-        trim:true,
-        minlength:5,
-    }
-})
+const port = process.env.PORT || 3000;
 
-let user0 = new User({email:'1@w.gu'});
-user0.save().then(doc=>console.log(doc),
-e=>{
-    console.log('Issue with saving the data');
-    if(e.name =='ValidationError'){
-        for(field in e.errors){
-            console.log(e.errors[field].message);
+app.use(bodyParser.json());
+
+app.post('/fishnik',(req,res)=>{
+    let fishnik = new Fishnik({
+        name:req.body.name,
+        year:req.body.year,
+        orientation:req.body.orientation,
+    });
+    fishnik.save().then((doc)=>{
+        res.send(doc);
+    },e=>{
+        console.log('Getting error with adding new document');
+        if(e.name = "ValidationError"){
+            for(field in e.errors){
+                res.send(e.errors[field].message);
+            }
         }
-    }
+    })
 })
+
+app.listen(3000);

@@ -66,6 +66,6 @@ app.get('/fishnik/:id',(req,res)=>{
     }
 })
 
-app.listen(3000,()=>console.log('listening port'));
+app.listen(port,()=>console.log('listening port'));
 
 module.exports = {app};

@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -31,6 +32,16 @@ app.post('/fishnik',(req,res)=>{
 })
 
 app.get('/fishnik',(req,res)=>{
+    let parameters = req.query;
+    
+    //uri example /fishnik?name=phil&year=6
+    if(parameters){
+        return Fishnik.find(parameters).then((docs)=>{
+            if(docs!=0) return res.send(docs);
+            res.send('Nothing found');
+        }).catch((e)=>res.send(e))
+    }
+    
     (async ()=>{
         try{
            let fishniks = await Fishnik.find();
@@ -65,6 +76,40 @@ app.get('/fishnik/:id',(req,res)=>{
         res.status(404).send(error);
     }
 })
+
+
+app.delete('/fishnik/:id',(req,res)=>{
+    let {id} = req.params;
+    if(ObjectID.isValid(id)){
+        (async ()=>{
+            try{
+                let doc = await Fishnik.findByIdAndDelete(id);
+                if(doc) return res.send(doc);
+                throw new Error('Not found');   
+            }catch(error){
+                res.status(404).send(error.message);
+            }          
+        })();   
+    }else{
+        res.send('Invalid ID');
+    }
+})
+
+app.delete('/fishnik',(req,res)=>{
+    let parameters = req.query;
+    if(!Object.keys(parameters).length)  return res.status(404).send('No parameters');
+    (async ()=>{
+        try {
+            let docs = await Fishnik.deleteMany(parameters);
+            if(docs.n>0) return res.send(docs);
+            throw new Error('Nothing found')
+        } catch (error) {
+            res.status(418).send(error.message)
+        }
+    })();
+})
+
+
 
 app.listen(port,()=>console.log('listening port'));
 

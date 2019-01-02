@@ -75,7 +75,7 @@ describe('GET /Fishnik',()=>{
             .get('/fishnik')
             .expect(200)
             .expect((res)=>{
-                expect(res.body.fishniks[0].name).toBe(dummyFi[0].name);
+                expect(res.body[0].name).toBe(dummyFi[0].name);
             })
             .end(done)
     })
@@ -88,5 +88,22 @@ describe('GET /Fishnik',()=>{
                 expect(res.body.name).toBe(dummyFi[0].name);
                 done();
             })
+    })
+})
+
+describe('DELETE /fishnik',()=>{
+    it('should delete items by id',(done)=>{
+        let id = dummyFi[0]._id.toHexString();
+        request(app)
+            .delete(`/fishnik/${id}`)
+            .expect(200)
+            .end((err,res)=>{
+                if(err) return done(err);
+                Fishnik.findById(id).then((doc)=>{
+                    expect(doc).toBeFalsy();
+                    done();
+                }).catch(e=>done(e));
+            })
+        
     })
 })

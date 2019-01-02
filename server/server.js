@@ -109,7 +109,25 @@ app.delete('/fishnik',(req,res)=>{
     })();
 })
 
+app.patch('/fishnik/:id',(req,res)=>{
+    let {id} = req.params;
+    let updateObj = _.pick(req.body,['name','year','orientation']);
+    if(!ObjectID.isValid(id)){
+       return res.status(404).send('Invalid ID')
+    }
+    if(!Object.keys(updateObj).length) return res.send('You can\'t update that parametres');
 
+    (async ()=>{
+        try {
+            let doc = await Fishnik.findByIdAndUpdate(id,updateObj,{new:true});
+            if(!Object.keys(doc).length) throw new Error('Blank object')
+            res.send(doc);
+        } catch (error) {
+            res.status(404).send(error);
+        }
+         
+    })();
+})
 
 app.listen(port,()=>console.log('listening port'));
 

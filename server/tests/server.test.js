@@ -107,3 +107,24 @@ describe('DELETE /fishnik',()=>{
         
     })
 })
+
+describe('PATCH /fishnik/:id',()=>{
+    it('should work(the test)',(done)=>{
+        let id = dummyFi[0]._id.toHexString();
+        let sendingObj = {
+            name:'Tupiko',
+            year:5
+        }
+        request(app)
+            .patch(`/fishnik/${id}`)
+            .send(sendingObj)
+            .expect(200)
+            .end((err,res)=>{
+                if(err) return done(err);
+                Fishnik.findById(id).then((doc)=>{
+                    expect(doc.name).toBe(sendingObj.name);
+                    done();
+                }).catch(e=>done(e))
+            })
+    })
+})

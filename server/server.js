@@ -14,6 +14,16 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
+const postingErrorHandler =(e,res)=>{
+    console.log('Getting error with adding new document');
+    if(e.name == "ValidationError"){
+        for(field in e.errors){
+            res.status(400).send(e.errors[field].message);
+        }
+    }else if(e.code ==11000){
+        res.status(400).send("Email already taken")
+    }
+}
 app.post('/fishnik',(req,res)=>{
     let fishnik = new Fishnik({
         name:req.body.name,
@@ -23,12 +33,7 @@ app.post('/fishnik',(req,res)=>{
     fishnik.save().then((doc)=>{
         res.send(doc);
     },e=>{
-        console.log('Getting error with adding new document');
-        if(e.name = "ValidationError"){
-            for(field in e.errors){
-                res.status(400).send(e.errors[field].message);
-            }
-        }
+        postingErrorHandler(e,res)
     })
 })
 
@@ -128,6 +133,19 @@ app.patch('/fishnik/:id',(req,res)=>{
         }
          
     })();
+})
+
+app.post('/user',(req,res)=>{
+    let uploadingObj = _.pick(req.body,['email','password']);
+    let user = new User(uploadingObj);
+    //user.validate().then(doc=>console.log('doc')).catch(e=>console.log(e))
+    user.save().then(()=>{
+        return user.generateAuthToken()
+    }).then((token)=>{
+        res.header('x-auth',token).send(user);
+    }).catch((e)=>{
+        postingErrorHandler(e,res)
+    })
 })
 
 app.listen(port,()=>console.log('listening port'));

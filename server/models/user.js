@@ -3,6 +3,7 @@ const validator = require('validator');
 const passwordValidator = require('password-validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 let UserSchema = new mongoose.Schema({
     email: {
@@ -24,7 +25,7 @@ let UserSchema = new mongoose.Schema({
                 let rules = new passwordValidator();
                 rules
                     .is().min(8)                                    // Minimum length 8
-                    .is().max(25)                                  // Maximum length 100
+                    .is().max(100)                                  // Maximum length 100
                     .has().uppercase()                              // Must have uppercase letters
                     .has().lowercase()                              // Must have lowercase letters
                     .has().digits()                                 // Must have digits
@@ -72,6 +73,22 @@ let UserSchema = new mongoose.Schema({
     }]
 })
 
+UserSchema.statics.findByEmailPass = function(user){
+    if(!("email" in user)) throw new Error('Email parameter not found')
+    if(!("password" in user)) throw new Error('Password parameter not found')
+    return (async()=>{
+        try {
+            let doc = await this.findOne({"email":user.email});
+            if(!doc)  throw new Error(`User with "${user.email}" not found`);
+            let passwordCorrect = await bcrypt.compare(user.password,doc.password);
+            if(passwordCorrect) return doc;
+            throw new Error('Incorrect password')
+        } catch (error) {
+            throw error;
+        }
+    })();
+}
+
 UserSchema.statics.findByToken = function(token){
     // this is the context of the  User model
     let decodedID;
@@ -100,6 +117,21 @@ UserSchema.methods.generateAuthToken = function () {
     user.tokens = user.tokens.concat([{ access, token }]);
     return user.save().then(() => token);
 }
+
+UserSchema.pre('save',function(next){
+    //this is the context of our user's doc
+    let user = this;
+    if(user.isModified('password')){
+        bcrypt.genSalt(10,(err,salt)=>{
+            bcrypt.hash(user.password,salt,(err,hash)=>{
+                user.password = hash;
+                next(err);
+            })
+        })
+    }else{
+        next();
+    }
+})
 
 let User = new mongoose.model('User', UserSchema);
 

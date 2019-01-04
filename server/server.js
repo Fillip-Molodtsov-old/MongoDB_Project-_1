@@ -38,6 +38,7 @@ app.post('/fishnik',(req,res)=>{
     })
 })
 
+
 app.get('/fishnik',(req,res)=>{
     let parameters = req.query;
     
@@ -139,7 +140,6 @@ app.patch('/fishnik/:id',(req,res)=>{
 app.post('/user',(req,res)=>{
     let uploadingObj = _.pick(req.body,['email','password']);
     let user = new User(uploadingObj);
-    //user.validate().then(doc=>console.log('doc')).catch(e=>console.log(e))
     user.save().then(()=>{
         return user.generateAuthToken()
     }).then((token)=>{
@@ -153,6 +153,17 @@ app.get('/user/me',authenticate,(req,res)=>{
     res.send(req.doc)
 })
 
-app.listen(port,()=>console.log('listening port'));
+app.get('/user/login',(req,res)=>{
+    let user = _.pick(req.body,['email','password']);
+    User.findByEmailPass(user).then((doc)=>{
+        return doc.generateAuthToken().then((token)=>{
+            res.header('x-auth',token).send(user);
+        })
+    }).catch((e)=>{
+        res.status(418).send(e.message)
+    })
+})
+
+app.listen(port,()=>console.log(`listening ${port}`));
 
 module.exports = {app};

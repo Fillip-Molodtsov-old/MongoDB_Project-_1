@@ -1,25 +1,15 @@
+
 const expect = require('expect');
 const request = require('supertest');
 
 const {ObjectID} = require('mongodb');
 const {app} = require('../server');
 const {Fishnik} = require('../models/fishnik');
+const {User} = require('../models/user');
+const {dummyFi,createSeedFishnik,users,createSeedUser} = require('./seed/seed');
 
-const dummyFi = [{
-    _id:new ObjectID(),
-    name:'stoopid',
-    year:1,
-    orientation:true,
-},{ 
-    _id:new ObjectID(),
-    name:'jake',
-    year:4,
-    orientation:true,
-}]
-
-beforeEach((done)=>{
-    Fishnik.deleteMany().then(()=>Fishnik.insertMany(dummyFi)).then(()=>done());
-})
+beforeEach(createSeedUser);
+beforeEach(createSeedFishnik);
 
 describe("POST Fishnik",()=>{
     it('should create a new fishnik',(done)=>{
@@ -127,4 +117,40 @@ describe('PATCH /fishnik/:id',()=>{
                 }).catch(e=>done(e))
             })
     })
+})
+describe('GET /users/me',()=>{
+    it('should return swoosh if authenticated',(done)=>{
+        request(app)
+            .get('/user/me')
+            .set('x-auth',users[0].tokens[0].token)
+            .expect(200)
+            .end((err,res)=>{
+                if(err) return done(err);
+                expect(res.body.email).toBe(users[0].email);
+                done();
+            })
+    })
+    it('should fail because don\'t authenticated',(done)=>{
+        request(app)
+            .get('/user/me')
+            .expect(401)
+            .end(done)
+    })
+})
+
+describe('POST /user',()=>{
+    it('should return a new user',(done)=>{
+        let user = {email:'yuui@ghmdtu.uiyou',password:'jzktySRY456'};
+        request(app)
+            .post('/user')
+            .send(user)
+            .expect(200)
+            .end((err,res)=>{
+                if(err) return done(err);
+                expect(res.header['x-auth']).toBeTruthy();
+                expect(res.body._id).toBeTruthy();
+
+                User.findOne(user).then(()=>done()).catch(e=>done(e))
+            })
+    });
 })

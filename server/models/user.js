@@ -71,6 +71,22 @@ let UserSchema = new mongoose.Schema({
         }
     }]
 })
+
+UserSchema.statics.findByToken = function(token){
+    // this is the context of the  User model
+    let decodedID;
+    try {
+        decodedID = jwt.verify(token,'abc123');
+    } catch (error) {
+        return Promise.reject();
+    }
+    return this.findOne({
+        _id:decodedID._id,
+        'tokens.access':decodedID.access,
+        'tokens.token':token
+    }).then(doc=>doc)
+}
+
 UserSchema.methods.toJSON = function () {
     let user = this;
     let userObj = user.toObject();

@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 let config = require('./config/config-env')
 const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose');
+const {authenticate} = require('./middleware/authenticate');
 const {User} = require('./models/user');
 const {Fishnik} = require('./models/fishnik');
 
@@ -146,6 +147,10 @@ app.post('/user',(req,res)=>{
     }).catch((e)=>{
         postingErrorHandler(e,res)
     })
+})
+
+app.get('/user/me',authenticate,(req,res)=>{
+    res.send(req.doc)
 })
 
 app.listen(port,()=>console.log('listening port'));

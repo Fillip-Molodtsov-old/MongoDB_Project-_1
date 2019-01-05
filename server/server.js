@@ -25,11 +25,12 @@ const postingErrorHandler =(e,res)=>{
         res.status(400).send("Email already taken")
     }
 }
-app.post('/fishnik',(req,res)=>{
+app.post('/fishnik',authenticate,(req,res)=>{
     let fishnik = new Fishnik({
         name:req.body.name,
         year:req.body.year,
         orientation:req.body.orientation,
+        _creator:req.doc._id,
     });
     fishnik.save().then((doc)=>{
         res.send(doc);
@@ -39,43 +40,44 @@ app.post('/fishnik',(req,res)=>{
 })
 
 
-app.get('/fishnik',(req,res)=>{
+app.get('/fishnik',authenticate,(req,res)=>{
     let parameters = req.query;
-    
+    parameters._creator = req.doc._id;
     //uri example /fishnik?name=phil&year=6
-    if(parameters){
-        return Fishnik.find(parameters).then((docs)=>{
-            if(docs!=0) return res.send(docs);
-            res.send('Nothing found');
-        }).catch((e)=>res.send(e))
-    }
-    
-    (async ()=>{
-        try{
-           let fishniks = await Fishnik.find();
-           if(fishniks == 0){
-               res.send({code:'The fishniks array is empty'})
-           }
-           res.send({
-               fishniks
+    return Fishnik.find(parameters)
+            .then((docs)=>{
+                if(docs!=0) return res.send(docs);
+                res.send('Nothing found');
             })
-        }catch(e){
-            res.status(404).send(e);
-        }
-    })();
+            .catch((e)=>res.send(e))
+    
+    // (async ()=>{
+    //     try{
+    //        let fishniks = await Fishnik.find();
+    //        if(fishniks == 0){
+    //            res.send({code:'The fishniks array is empty'})
+    //        }
+    //        res.send({
+    //            fishniks
+    //         })
+    //     }catch(e){
+    //         res.status(404).send(e);
+    //     }
+    // })();
 })
 
-app.get('/fishnik/:id',(req,res)=>{
+app.get('/fishnik/:id',authenticate,(req,res)=>{
     let {id} = req.params;
+    let _creator = req.doc._id;
     if(ObjectID.isValid(id)){
         (async ()=>{
             try {
-                let doc = await Fishnik.findById(id);
+                let doc = await Fishnik.findOne({_id: id,_creator});
                 if(doc) return res.send(doc);
+
                 throw new Error('blank')
             } catch (error) {
-                console.log(error);
-                res.status(404).send(error);
+                res.status(404).send(error.message);
             }
         })();
     }else{
@@ -86,12 +88,13 @@ app.get('/fishnik/:id',(req,res)=>{
 })
 
 
-app.delete('/fishnik/:id',(req,res)=>{
+app.delete('/fishnik/:id',authenticate,(req,res)=>{
     let {id} = req.params;
+    let _creator = req.doc._id;
     if(ObjectID.isValid(id)){
         (async ()=>{
             try{
-                let doc = await Fishnik.findByIdAndDelete(id);
+                let doc = await Fishnik.findOneAndDelete({_id:id,_creator});
                 if(doc) return res.send(doc);
                 throw new Error('Not found');   
             }catch(error){
@@ -117,8 +120,9 @@ app.delete('/fishnik',(req,res)=>{
     })();
 })
 
-app.patch('/fishnik/:id',(req,res)=>{
+app.patch('/fishnik/:id',authenticate,(req,res)=>{
     let {id} = req.params;
+    let _creator = req.doc._id;
     let updateObj = _.pick(req.body,['name','year','orientation']);
     if(!ObjectID.isValid(id)){
        return res.status(404).send('Invalid ID')
@@ -127,7 +131,7 @@ app.patch('/fishnik/:id',(req,res)=>{
 
     (async ()=>{
         try {
-            let doc = await Fishnik.findByIdAndUpdate(id,updateObj,{new:true});
+            let doc = await Fishnik.findOneAndUpdate({_id:id,_creator},updateObj,{new:true});
             if(!Object.keys(doc).length) throw new Error('Blank object')
             res.send(doc);
         } catch (error) {

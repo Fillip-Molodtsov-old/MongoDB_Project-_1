@@ -4,18 +4,6 @@ const {ObjectID} = require('mongodb');
 const {Fishnik} = require('../../models/fishnik');
 const {User} = require('../../models/user');
 
-const dummyFi = [{
-    _id:new ObjectID(),
-    name:'stoopid',
-    year:1,
-    orientation:true,
-},{ 
-    _id:new ObjectID(),
-    name:'jake',
-    year:4,
-    orientation:true,
-}];
-
 const user1ID = new ObjectID();
 const user2ID = new ObjectID();
 
@@ -31,7 +19,25 @@ const users = [{
     _id:user2ID,
     email:'gigi@gege.yup',
     password:'trTTT46534',
+    tokens:[{
+        access:'auth',
+        token:jwt.sign({_id:user2ID,access:'auth'},'abc123').toString()
+    }]
 }]
+
+const dummyFi = [{
+    _id:new ObjectID(),
+    _creator:user1ID,
+    name:'stoopid',
+    year:1,
+    orientation:true,
+},{ 
+    _id:new ObjectID(),
+    _creator:user2ID,
+    name:'jake',
+    year:4,
+    orientation:true,
+}];
 
 const createSeedFishnik = (done)=>{
     Fishnik.deleteMany().then(()=>Fishnik.insertMany(dummyFi)).then(()=>done());

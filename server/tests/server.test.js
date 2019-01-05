@@ -18,6 +18,7 @@ describe("POST Fishnik",()=>{
         let orientation = false;
         request(app)
             .post('/fishnik')
+            .set('x-auth',users[0].tokens[0].token)
             .send({name,year,orientation})
             .expect(200)
             .expect((res)=>{
@@ -42,6 +43,7 @@ describe("POST Fishnik",()=>{
     it('should not create a blank doc',(done)=>{
         request(app)
             .post('/fishnik')
+            .set('x-auth',users[0].tokens[0].token)
             .send({})
             .expect(400)
             .end((err,res)=>{
@@ -63,6 +65,7 @@ describe('GET /Fishnik',()=>{
     it('should return the fishniks array',(done)=>{
         request(app)
             .get('/fishnik')
+            .set('x-auth',users[0].tokens[0].token)
             .expect(200)
             .expect((res)=>{
                 expect(res.body[0].name).toBe(dummyFi[0].name);
@@ -72,6 +75,7 @@ describe('GET /Fishnik',()=>{
     it('should return a doc by id',(done)=>{
         request(app)
             .get(`/fishnik/${dummyFi[0]._id.toHexString()}`)
+            .set('x-auth',users[0].tokens[0].token)
             .expect(200)
             .end((err,res)=>{
                 if(err) return done(err);
@@ -86,6 +90,7 @@ describe('DELETE /fishnik',()=>{
         let id = dummyFi[0]._id.toHexString();
         request(app)
             .delete(`/fishnik/${id}`)
+            .set('x-auth',users[0].tokens[0].token)
             .expect(200)
             .end((err,res)=>{
                 if(err) return done(err);
@@ -107,6 +112,7 @@ describe('PATCH /fishnik/:id',()=>{
         }
         request(app)
             .patch(`/fishnik/${id}`)
+            .set('x-auth',users[0].tokens[0].token)
             .send(sendingObj)
             .expect(200)
             .end((err,res)=>{
@@ -134,7 +140,10 @@ describe('GET /users/me',()=>{
         request(app)
             .get('/user/me')
             .expect(401)
-            .end(done)
+            .end((err,res)=>{
+                if(err) done(err)
+                done()
+            })
     })
 })
 

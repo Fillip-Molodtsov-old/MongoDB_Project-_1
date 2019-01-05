@@ -10,7 +10,7 @@ const authenticate = (req,res,next)=>{
         req.doc = doc;
         req.token = token;
         next();
-    }).catch(e=> res.status(401).send())
+    }).catch(e=>res.status(401).send())
 }
 
 module.exports = {authenticate};

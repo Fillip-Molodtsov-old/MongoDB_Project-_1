@@ -15,6 +15,10 @@ let Fishnik = new mongoose.model('Fishnik', {
         required: [function(){
             return this.year>1;
         },'Come on, get your orientation']
+    },
+    _creator:{
+        type:mongoose.Schema.Types.ObjectId,
+        required:true,
     }
 });
 

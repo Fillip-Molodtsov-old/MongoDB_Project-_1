@@ -1,3 +1,4 @@
 node_modules/
 package-lock.json
 *.txt
+server/config/config-env.json

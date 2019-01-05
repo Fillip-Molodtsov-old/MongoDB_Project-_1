@@ -1,18 +1,11 @@
 let env = process.env.NODE_ENV || 'dev';
 console.log(env);
-let mongodb_uri;
-switch(env){
-    case "dev":
-        process.env.PORT = 3000;
-        mongodb_uri = 'mongodb://127.0.0.1:27017/MongooseApp';
-        break;
-    case "test":
-        process.env.PORT = 3000;
-        mongodb_uri = 'mongodb://127.0.0.1:27017/MongooseAppTest';
-        break;
-    default:
-        mongodb_uri = 'mongodb://phil:phil123@ds145194.mlab.com:45194/fishnik';
-        break;
-}
+//process.env.MongoDB_URI = 'mongodb://phil:phil123@ds145194.mlab.com:45194/fishnik';
 
-module.exports={mongodb_uri};
+if(env=="dev"||env=="test"){
+    let config = require('./config-env.json');
+    let configEnv = config[env];
+    Object.keys(configEnv).forEach((key)=>{
+        process.env[key] = configEnv[key];
+    })
+}

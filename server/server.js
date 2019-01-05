@@ -164,6 +164,13 @@ app.get('/user/login',(req,res)=>{
     })
 })
 
+app.delete('/user/logout',authenticate,(req,res)=>{
+    let token = req.token;
+    req.doc.removeToken(token)
+    .then(()=>res.status(200).send('Succesfully logged out'))
+    .catch(e=>res.send(e.message))
+})
+
 app.listen(port,()=>console.log(`listening ${port}`));
 
 module.exports = {app};

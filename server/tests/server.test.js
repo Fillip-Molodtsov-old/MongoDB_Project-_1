@@ -154,3 +154,33 @@ describe('POST /user',()=>{
             })
     });
 })
+
+describe('Get /user/login',()=>{
+    it('should login a user an return a token',(done)=>{
+        request(app)
+            .get('/user/login')
+            .send({email:users[0].email,password:users[0].password})
+            .expect(200)
+            .expect(res=>{
+                expect(res.header['x-auth']).toBeTruthy;
+                expect(res.body.email).toBe(users[0].email)
+            })
+            .end(done)
+    })
+})
+
+describe('Delete /user/logout',()=>{
+    it('should remove auth token',(done)=>{
+        request(app)
+            .delete('/user/logout')
+            .set('x-auth',users[0].tokens[0].token)
+            .expect(200)
+            .end((err,res)=>{
+                if(err) done(err);
+                User.findOne({email:users[0].email}).then((doc)=>{
+                    expect(doc.tokens.length).toBe(0)
+                    done()
+                })
+            })     
+    })
+})

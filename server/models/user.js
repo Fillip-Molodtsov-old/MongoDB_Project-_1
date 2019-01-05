@@ -118,6 +118,14 @@ UserSchema.methods.generateAuthToken = function () {
     return user.save().then(() => token);
 }
 
+UserSchema.methods.removeToken = function(token){
+    //this is a context of the user's doc
+    return this.updateOne({
+        $pull:{
+            tokens:{token}
+        }
+    })
+}
 UserSchema.pre('save',function(next){
     //this is the context of our user's doc
     let user = this;
